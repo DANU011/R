@@ -4,7 +4,7 @@
 # 단계 1: 데이터베이스 연결을 위한 패키지 설치 
 install.packages("rJava")
 install.packages("DBI")
-install.packages("RJDBC")
+install.packages("RJDBC", type="win.binary")
 
 # 단계 2: 데이터베이스 연결을 위한 패키지 로딩
 library(DBI)
@@ -21,6 +21,8 @@ drv <- JDBC("oracle.jdbc.driver.OracleDriver",
 # 단계 2: 오라클 데이터베이스 연결
 conn <- dbConnect(drv,
                   "jdbc:oracle:thin:@//127.0.0.1:1521/xe", "c##scott", "1234")
+
+
 
 
 # 실습: 데이터베이스로부터 레코드 검색, 추가, 수정, 삭제하기 
@@ -142,7 +144,7 @@ install.packages("https://cran.rstudio.com/bin/windows/contrib/3.4/KoNLP_0.80.1.
 # 실습: 한글 사전과 텍스트 마이닝 관련 패키지 설치
 install.packages("Sejong")
 install.packages("wordcloud")
-install.packages("tm")
+install.packages("tm", type="win.binary")
 
 
 # 실습: 패키지 로딩
@@ -151,7 +153,7 @@ install.packages("hash")
 install.packages("tau")
 install.packages("devtools")
 install.packages("RSQLite")
-install.packages("rJava")
+
 
 library(KoNLP)
 library(tm)
@@ -191,8 +193,9 @@ facebook_nouns[1]
 
 # 실습: 추출된 단어를 대상으로 전처리하기 
 # 단계 1: 추출된 단어를 이용하여 말뭉치(Corpus) 생성
-myCorpus
 
+myCorpus<-Corpus(VectorSource(facebook_nouns))
+myCorpus
 
 # 단계 2: 데이터 전처리 
 # 단계 2-1: 문장부호 제거 
