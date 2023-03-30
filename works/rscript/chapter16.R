@@ -9,18 +9,13 @@ x
 dist <- dist(x, method = "euclidean")
 dist
 
-
 # 실습: 1행과 2행 변량의 유클리디안 거리 구하기 
 s <- sum((x[1, ] - x[2, ]) ^ 2)
 sqrt(s)
 
-
 # 실습: 1행과 3행 변량의 유클리디안 거리 구하기 
 s <- sum((x[1, ] - x[3, ]) ^ 2)
 sqrt(s)
-s <- sum((x[2, ] - x[3, ]) ^ 2)
-sqrt(s)
-
 
 # 실습: 유클리디안 거리를 이용한 군집화
 # 단계 1: 군집분석(Clustering)을 위한 패키지 설치
@@ -29,7 +24,7 @@ library(cluster)
 
 # 단계 2: 데이터 셋 생성
 x <- matrix(1:9, nrow = 3, by = T)
-x
+
 # 단계 3: matrix 객체 대상 유클리디안 거리 생성
 dist <- dist(x, method = "euclidean")
 
@@ -39,10 +34,9 @@ hc <- hclust(dist)
 # 단계 5: 클러스터 시각화 
 plot(hc)
 
-
 # 실습: 신입사원의 면접시험 결과를 군집분석
 # 단계 1: 데이터 셋 가져오기 
-interview <- read.csv("C:/Rwork/Part-IV/interview.csv", header = TRUE)
+interview <- read.csv("C:/Rwork/Part-IV/interview.csv", header = TRUE, fileEncoding = "euc-kr")
 names(interview)
 head(interview)
 
@@ -61,8 +55,6 @@ plot(hc, hang = -1)
 # 단계 5: 군집 단위 테두리 생성
 rect.hclust(hc, k = 3, border ="red")
 
-
-
 # 실습: 군집별 특징 보기 
 # 단계 1: 군집별 서브 셋 만들기 
 g1 <- subset(interview, no == 108 | no == 110 | no == 107 |
@@ -77,122 +69,122 @@ summary(g1)
 summary(g2)
 summary(g3)
 
-
 # 실습: iris 데이터 셋을 대상으로 군집 수 자르기 
 # 단계 1: 유클리디안 거리 계산
 idist <- dist(iris[1:4])
 hc <- hclust(idist)
 plot(hc, hang = -1)
+rect.hclust(hc, k=4, border = "red") # 4개 군집 수 확인
 
 # 단계 2: 군집 수 자르기 
 ghc <- cutree(hc, k = 3)
 ghc
 
-# 단계 3: iris 데이터 셋에 ghc 칼러 ㅁ추가 
+# 단계 3: iris 데이터 셋에 ghc 칼럼 추가 
 iris$ghc <- ghc
-table(iris$ghc)
-head(iris)
+table(iris$ghc) # ghc 빈도수
+head(iris) # ghc 칼럼 확인
 
 # 단계 4: 요약 통계량 구하기 
-g1 <- subset(iris, ghc == 1)
-summary(g1[1:4])
-g2 <- subset(iris, ghc == 2)
-summary(g2[1:4])
-g3 <- subset(iris, ghc == 3)
-summary(g3[1:4])
-
-
+g1 <- subset(iris, ghc == 1) # 제1군집 서브셋 작성
+summary(g1[1:4]) # 제1군집 요약통계량
+g2 <- subset(iris, ghc == 2) # 제2군집 서브셋 작성
+summary(g2[1:4]) # 제2군집 요약통계량
+g3 <- subset(iris, ghc == 3) # 제3군집 서브셋 작성
+summary(g3[1:4]) # 제3군집 요약통계량
 
 # 실습: K-means 알고리즘에 군집 수를 적용하여 군집별로 시각화 
 # 단계 1: 군집분석에 사용할 변수 추출
 library(ggplot2)
 data(diamonds)
-t <- sample(1:nrow(diamonds), 1000)
-test <- diamonds[t, ]
+t <- sample(1:nrow(diamonds), 1000) # 데이터 샘플링
+t
+test <- diamonds[t, ] # 표본으로 검정데이터 생성
 dim(test)
-head(test)
+head(test) # 검정데이터
 
-mydia <- test[c("price", "carat", "depth", "table")]
+# 군집을 위해서 필요한 변수 추출
+mydia <- test[c("price", "carat", "depth", "table")] # 4개 칼럼만 선정
 head(mydia)
 
-
 # 단계 2: 계층적 군집분석(탐색적 분석)
-result <- hclust(dist(mydia), method = "average")
+result <- hclust(dist(mydia), method = "average") # 평균 거리 이용
 result
-plot(result, hang = -1)
-
+plot(result, hang = -1) # hang: -1 이하 값 제거
+rect.hclust(result, k=4, border="red")
 
 # 단계 3: 비계층적 군집분석
-result2 <- kmeans(mydia, 3)
+result2 <- kmeans(mydia, 3) # 3개 군집 수 적용
 names(result2)
-result2$cluster
+result2$cluster # 각 케이스에 대한 소속 군집 수(1,2,3) 생성
 
+# 원형 데이터에 군집 수 추가
 mydia$cluster <- result2$cluster
 head(mydia)
 
 # 단계 4: 변수 간의 상관계수 보기 
-cor(mydia[ , -5], method = "pearson")
-plot(mydia[ , -5])
+cor(mydia[ , -5], method = "pearson") # 상관계수 보기
+plot(mydia[ , -5]) # 변수 간 산점도 보기
 
-# 단계 5: 상관계수를 색상으로시각화 
+# 단계 5: 상관계수를 색상으로 시각화 
 install.packages("mclust")
 library(mclust)
 install.packages("corrgram")
 library(corrgram)
+
+# 수치(상관계수) 추가(위쪽)
 corrgram(mydia[ , -5], upper.panel = panel.conf)
+# 수치(상관계수) 추가(아래쪽)
 corrgram(mydia[ , -5], lower.panel = panel.conf)
 
-
-# 단계 6: 비계층적 군집 시각화 
+# 단계 6: 비계층적 군집 시각화
 plot(mydia$carat, mydia$price, col = mydia$cluster)
+# 중심점 표시 추가
+# 속성 col:color, pch:중심점 문자, cex:중심점 문자 크기
 points(result2$centers[ , c("carat", "price")],
        col = c(3, 1, 2), pch = 8, cex = 5)
 
-
-# 실습: 트랜잭션 객체를 대상으로 연관규칙 생성
+# 실습: 트랜잭션 객체를 대상으로 연관규칙 생성 - db.트랜잭션과는 다름!
 # 단계 1: 연관분석을 위한 패키지 설치
-install.packages("arules")
+install.packages("arules") # 연관규칙 생성을 위한 패키지 설치
 library(arules)
 
 # 단계 2: 트랜잭션 객체 생성
 setwd("C:/Rwork/Part-IV")
-tran <- read.transactions("tran.txt", format = "basket", sep = ",")
-tran
-
+tran <- read.transactions("tran1.txt", format = "basket", sep = ",")
+tran # 6개의 트랜잭션과 5개의 항목(상품) 생성
 
 # 단계 3: 트랜잭션 데이터 보기 
-inspect(tran)
+inspect(tran) # 6개 트랜잭션의 항목 출력
 
-# 단계 4: 규칙 발견
-rule <- apriori(tran, parameter = list(supp = 0.3, conf = 0.1))
-inspect(rule)
+# 단계 4: 규칙 발견 1
+rule <- apriori(tran, parameter = list(supp = 0.3, conf = 0.1)) # 16 rules
+inspect(rule) # 규칙 보기
 
-# 단계 5: 규칙 발견
-rule <- apriori(tran, parameter = list(supp = 0.1, conf = 0.1))
-inspect(rule)
-
+# 단계 5: 규칙 발견 2
+rule <- apriori(tran, parameter = list(supp = 0.1, conf = 0.1)) # 35 rules
+inspect(rule) # 규칙 보기
 
 # 실습: single 트랜잭션 객체 생성
 setwd("C:/Rwork/Part-IV")
 stran <- read.transactions("demo_single", format = "single", cols = c(1, 2))
-inspect(stran)
+inspect(stran) # transactionID에 의해서 item이 대응되어 있음
 
 # 실습: 중복 트랜잭션 제거 
 # 단계 1: 트랜잭션 데이터 가져오기 
 setwd("C:/Rwork/Part-IV")
 stran2 <- read.transactions("single_format.csv", format = "single",
-                             sep = ",", cols = c(1, 2), rm.duplicates = T)
+                            sep = ",", cols = c(1, 2), rm.duplicates = T)
 
-# 단계 2: 트랜잭선과 상품수 확인
+# 단계 2: 트랜잭션과 상품수 확인
 stran2
 
 # 단계 3: 요약 통계량 제공
-summary(stran2)
-
+summary(stran2) # 트랜잭션에 대한 기술통계 제공
 
 # 실습: 규칙 발견(생성)
 # 단계 1: 규칙 생성하기 
-astran2 <- apriori(stran2)
+astran2 <- apriori(stran2) # supp = 0.1, conf = 0.8와 동일함
 
 # 단계 2: 발견된 규칙 보기 
 inspect(astran2)
@@ -200,41 +192,35 @@ inspect(astran2)
 # 단계 3: 상위 5개의 향상도를 내림차순으로 정렬하여 출력
 inspect(head(sort(astran2, by = "lift")))
 
-
-
 # 실습: basket 형식으로 트랜잭션 객체 생성
 setwd("C:/Rwork/Part-IV")
 btran <- read.transactions("demo_basket", format = "basket", sep = ",")
-inspect(btran)
-
+inspect(btran) # 트랜잭션 데이터 보기
 
 # 실습: Adult 데이터 셋 가져오기 
-data(Adult)
+data(Adult) # arules에서 제공되는 내장 데이터 로딩
+str(Adult) # Formal class 'transactions', 48842
 Adult
-
 
 # 실습: AdultUCI 데이터 셋 보기 
 data("AdultUCI")
 str(AdultUCI)
 
-
 # 실습: Adult 데이터 셋의 요약 통계량 보기 
 # 단계 1: data.frame 형식으로 보기 
-adult <- as(Adult, "data.frame")
-str(adult)
-head(adult)
+adult <- as(Adult, "data.frame") # date.frame 형식으로 변경
+str(adult) # 'data.frame': 48842 obs. of 2 variables:
+head(adult) # 칼럼 내용 보기
 
-# 단계 2: 오약 통계량
+# 단계 2: 요약 통계량
 summary(Adult)
-
 
 # 실습: 지지도 10%와 신뢰도 80%가 적용된 연관규칙 발견
 ar <- apriori(Adult, parameter = list(supp = 0.1, conf = 0.8))
 
-
-# 실습: 다양한 신뢰도와 지지도를 적용한 예 
+# 실습: 다양한 신뢰도와 지지도를 적용한 예 - 발생확률 높임 -> 발견된 규칙 수가 줄어든다.
 # 단계 1: 지지도를 20%로 높인 경우 1,306개 규칙 발견
-ar1 <- apriori(Adult, parameter = list(supp = 0.2))
+ar1 <- apriori(Adult, parameter = list(supp = 0.2)) 
 
 # 단계 2: 지지도를 20%, 신뢰도를 95%로 높인 경우 348개 규칙 발견
 ar2 <- apriori(Adult, parameter = list(supp = 0.2, conf = 0.95))
@@ -248,10 +234,9 @@ ar4 <- apriori(Adult, parameter = list(supp = 0.35, conf = 0.95))
 # 단계 5: 지지도를 40%, 신뢰도를 95%로 높인 경우 36개 규칙 발견
 ar5 <- apriori(Adult, parameter = list(supp = 0.4, conf = 0.95))
 
-
 # 실습: 규칙 결과 보기 
 # 단계 1: 상위 6개 규칙 보기 
-inspect(head(ar5))
+inspect(head(ar5)) # head()와 inspect() 함수 이용
 
 # 단계 2: confidence(신뢰도) 기준 내림차순 정렬 상위 6개 출력
 inspect(head(sort(ar5, decreasing = T, by = "confidence")))
@@ -259,20 +244,18 @@ inspect(head(sort(ar5, decreasing = T, by = "confidence")))
 # 단계 3: lift(향상도) 기준 내림차순 정렬 상위 6개 출력
 inspect(head(sort(ar5, by = "lift")))
 
-
-
 # 실습: 연관규칙 시각화 
 # 단계 1: 패키지 설치 
 install.packages("arulesViz")
-library(arulesViz)
+library(arulesViz) # 패키지 로딩
 
 # 단계 2: 연관규칙 시각화
-plot(ar3, method = "graph", control = list(type = "items"))
-
+# control 속성 생략 가능
+plot(ar3, method = "graph", control = list(type = "items"), engine = "htmlwidget")
 
 # 실습: Groceries 데이터 셋으로 연관분석 하기 
 # 단계 1: Groceries 데이터 셋 가져오기 
-data("Groceries")
+data("Groceries") # 식료품점 데이터 로딩
 str(Groceries)
 Groceries
 
@@ -286,46 +269,41 @@ rules <- apriori(Groceries, parameter = list(supp = 0.001, conf = 0.8))
 # 단계 4: 규칙을 구성하는 왼쪽(LHS) -> 오른쪽(RHS)의 item 빈도수 보기 
 plot(rules, method = "grouped")
 
-
-
 # 실습: 최대 길이가 3이하인 규칙 생성
 rules <- apriori(Groceries, 
                  parameter = list(supp = 0.001, conf = 0.80, maxlen = 3))
-
 
 # 실습: Confidence(신뢰도) 기준 내림차순으로 규칙 정렬
 rules <- sort(rules, decreasing = T, by = "confidence")
 inspect(rules)
 
-
 # 실습: 발견된 규칙 시각화 
-library(arulesViz)
-plot(rules, method = "graph")
-
-
+library(arulesViz) # 연관규칙 시각화를 위한 패키지 로딩
+plot(rules, method = "graph", engine = "htmlwidget")
 
 # 실습: 특정 상품(item)으로 서브 셋 작성과 시각화 
 # 단계 1: 오른쪽 item이 전지분유(whole milk)인 규칙만 서브 셋으로 작성
-wmilk <- subset(rules, rhs %in% 'whole milk')
-wmilk
+wmilk <- subset(rules, rhs %in% 'whole milk') # lhs: 왼쪽 item
+wmilk # set of 18 rules
 
-inspect(wmilk)
-plot(wmilk, method = "graph")
+inspect(wmilk) # 규칙 확인
+plot(wmilk, method = "graph", engine = "htmlwidget") # 연관 네트워크 그래프
 
 # 단계 2: 오른쪽 item이 other vegetables인 규칙만 서브 셋으로 작성
 oveg <- subset(rules, rhs %in% 'other vegetables')
 oveg
 inspect(oveg)
-plot(oveg, method = "graph")
+plot(oveg, method = "graph", engine = "htmlwidget")
 
-
-# 단계 3: 오른쪽 item이 vegetables 단어가 포함된 규칙만 서브 셋으로 작성
-oveg <- subset(rules, rhs %in% 'vegetables')
+# 단계 3: 오른쪽 item이 yogurt 단어가 포함된 규칙만 서브 셋으로 작성
+oveg <- subset(rules, lhs %in% 'yogurt')
 
 oveg
 inspect(oveg)
+plot(oveg, method = "graph", engine = "htmlwidget")
 
 # 단계 4: 왼쪽 item이 butter 또는 yogurt인 규칙만 서브 셋으로 작성
 butter_yogurt <- subset(rules, lhs %in% c('butter', 'yogurt'))
 butter_yogurt
 inspect(butter_yogurt)
+plot(butter_yogurt, method = "graph", engine = "htmlwidget") 
