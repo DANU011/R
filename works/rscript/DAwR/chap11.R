@@ -36,4 +36,25 @@ iris$Species %>% table() %>% prop.table() # shift + ctrl + m
 
 # === dplyr 사용 예제 ===
 
-# 
+# df에서 컬럼을 선택하거나 제거
+# 행번호로 행을 잘라내거나, 조건에 맞는 행 걸러내기
+# 그룹 설정, 숫자 컬럼을 집계함수로 요약
+# 기존 컬럼 변형, 새로운 컬럼 생성
+# df 정렬 오름차순 혹은 내림차순
+
+library(magrittr)
+library(dplyr)
+
+iris %>% 
+    select(Sepal.Length, Species) %>% 
+    filter(Sepal.Length >= 5.2) %>% 
+    group_by(Species) %>% 
+    summarise(Count = n()) %>% 
+    mutate(Pcnt = Count / sum(Count)) %>% 
+    arrange(desc(x = Pcnt))
+# A tibble: 3 × 3
+#   Species    Count  Pcnt
+#   <fct>      <int> <dbl>
+# 1 virginica     49 0.450
+# 2 versicolor    46 0.422
+# 3 setosa        14 0.128
