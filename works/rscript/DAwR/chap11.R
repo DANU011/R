@@ -325,3 +325,120 @@ price %>%
 # 10    10      225     17.7
 # 11    11      440     18.4
 # 12    12      503     19.9
+
+
+## 데이터프레임 형태 변환
+# === Long type df ===
+
+price %>% 
+    group_by(아파트, 금액부분) %>%  # 아파트와 금액부분 컬럼으로 그룹 지정, 빈도수 계산해서 매매건수 컬럼으로 생성한 결과를 elong에 할당
+    summarise(매매건수 = n()) -> elong # == summarize()
+# `summarise()` has grouped output by '아파트'. You can override using the
+# `.groups` argument. # 2개 이상의 컬럼으로 그룹을 지정해서 출력되는 안내문
+
+head(x = elong)
+# A tibble: 6 × 3
+# Groups:   아파트 [5]
+#     아파트         금액부분 매매건수
+#     <chr>          <chr>       <int>
+# 1 LG선릉에클라트 1억 미만       30
+# 2 RudenHouse     1억 미만        3
+# 3 SK허브프리모   1억 미만       10
+# 4 SM드림빌       1억 미만        2
+# 5 e-편한세상     1억 미만       38
+# 6 e-편한세상     1억 이상        9 
+# 같은 아파트에 대해 금액구분 컬럼의 원소인 '1억 미만'과 '1억 이상'이 세로로 생성됨 == long type
+
+
+# === Long type과 Wide type 상호 변환 ===
+
+# spread : long type -> wide type
+# spread(data = long type df,
+#        key = wide type의 컬럼명으로 펼칠 long type의 컬럼명,
+#        value = wide type의 원소로 채울 long type의 컬럼명,
+#        fill = wide type으로 변환할 때, 빈 칸에 채울 값(기본값은 NA))
+
+# gather : wide type -> long type
+# gather(data = wide type df,
+#        key = long type의 컬럼명으로 펼칠 long type의 컬럼명,
+#        value = wide type의 원소로 채울 long type의 컬럼명,
+#        long type의 key와 value로 채울 wide type의 컬럼명 또는 인덱스,
+#        (콜론 및 마이너스 사용 가능)
+#        na.rm = wide type으로 변환할 때, NA 삭제 여부)
+
+elong %>% 
+    spread(key = 금액부분, value = 매매건수, fill = 0) -> widen # elong에서 금액부분의 원소를 컬럼명으로 펼치고, 매매건수를 원소로 채운 결과를 widen에 할당
+
+head(x = widen)
+# A tibble: 6 × 3
+# Groups:   아파트 [6]
+#     아파트         `1억 미만` `1억 이상` # 숫자로 시작하는 컬럼명이 백틱으로 감싸져 있음.
+#     <chr>               <dbl>      <dbl>
+# 1 e-편한세상             38          9 # 같은 아파트에 대해 '1억 미만'과 '1억 이상' 컬럼이 가로로 생성 == wide type
+# 2 LG선릉에클라트         30          0
+# 3 RudenHouse              3          0
+# 4 SK허브프리모           10          0
+# 5 SM드림빌                2          0
+# 6 가람                   10          0
+
+widen %>%
+    gather(key = 금액타입, value = 거래건수, 2:3, na.rm = FALSE) %>% # widen에서 key와 value로 사용될 컬럼명으로 '금액타입'과 '거래건수'를 각각 설정하고, wide type의 2~3번째 컬럼명으로 long type의 key와 value를 채움.
+    head()
+# # A tibble: 6 × 3
+# # Groups:   아파트 [6]
+#     아파트         금액타입 거래건수 # long type으로 변환된 df를 출력. 컬럼명이 '금액타입'과 '거래건수'로 출력.
+#     <chr>          <chr>       <dbl>
+# 1 e-편한세상     1억 미만       38 # gather() 함수는 key에 지정된 원소를 오름차수능로 정렬하므로 'e-편한세상'에는 '1억 미만'에 대한 빈도수만 확인됨.
+# 2 LG선릉에클라트 1억 미만       30 
+# 3 RudenHouse     1억 미만        3
+# 4 SK허브프리모   1억 미만       10
+# 5 SM드림빌       1억 미만        2
+# 6 가람           1억 미만       10
+
+
+## 오름차순 및 내림차순 정렬
+# === 정렬하기 ===
+
+# df %>% arrange(desc(x = 컬럼명), 컬럼명, ...)
+
+df <- price %>% select(아파트, 전용면적, 층, 거래금액, 단위금액) # price에서 일부 컬럼만 선택하고 df에 할당
+df %>% arrange(desc(x = 거래금액)) %>% head() # df를 거래금액 컬럼 기준으로 내림차순 정렬
+#             아파트 전용면적 층 거래금액 단위금액
+# 1             현대  245.200  9    67.00     9017
+# 2             현대  245.200  5    65.00     8748
+# 3     효성빌라청담  226.740  5    62.00     9024
+# 4         아이파크  195.388 23    57.00     9627
+# 5 상지리츠빌카일룸  210.500  4    56.54     8864
+# 6   청담어퍼하우스  200.380  5    55.80     9190
+
+# 컬럼명을 2개 이상 지정하면 결과값을 얻을 수 없음.
+df %>% arrange(desc(x = 층, 거래금액)) %>% head()
+# Error in `arrange()`:
+#     ! `desc()` must be called with exactly one argument.
+# Run `rlang::last_trace()` to see where the error occurred.
+
+df %>% arrange(desc(x = 층), desc(x = 거래금액)) %>% head() # 각각 정렬해야함.
+#       아파트 전용면적 층 거래금액 단위금액
+# 1 타워팰리스  235.740 67    54.25     7594
+# 2 타워팰리스  185.622 66    38.00     6756
+# 3 타워팰리스  185.622 63    35.00     6222
+# 4 타워팰리스  222.480 58    38.20     5666
+# 5 타워팰리스  164.970 58    29.00     5801
+# 6 타워팰리스   78.990 58    13.80     5765 # 같은 층에 대해 거래금액 컬럼이 내림차순으로 정렬
+
+df %>% arrange(desc(x = 층), 거래금액) %>% head()
+#       아파트 전용면적 층 거래금액 단위금액
+# 1 타워팰리스  235.740 67    54.25     7594
+# 2 타워팰리스  185.622 66    38.00     6756
+# 3 타워팰리스  185.622 63    35.00     6222
+# 4 타워팰리스   78.990 58    13.80     5765 # 같은 층에 대해 거래금액 컬럼이 오름차순 정렬됨.
+# 5 타워팰리스  164.970 58    29.00     5801
+# 6 타워팰리스  222.480 58    38.20     5666
+
+
+# === RDS 파일로 저장 ===
+
+getwd()
+# [1] "C:/Users/DA/GitHub/R/works/rscript/DAwR"
+setwd(dir = './data')
+saveRDS(object = price, file = 'APT_Price_Gangnam_2020.RDS')
