@@ -148,3 +148,223 @@ mytheme <- theme_bw(base_family = 'NanumGothicCoding') +
 ## 상자 수염 그림 시각화
 
 # 일변량 연속형 데이터의 분포에 사분위수와 이상치를 시각화. 히스토그램과 달리 데이터 분포를 세로로 표현
+
+# geom_boxplot에서만 추가할 수 있는 매개변수로는 outlier.colour, outlier.fill, outlier.shape, outlier.size,
+# outlier.stroke, outlier.alpha등 이상치와 관련된 것들임
+
+# geom_boxplot(color = NULL, fill = NULL, outlier.colour = NULL,
+#              outlier.fill = NULL, outlier.shape = 19, outlier.size = 1.5,
+#              outlier.stroke = 1.5, outlier.alpha = NULL, -)
+
+
+# === 일변량 상자 수염 그림 ===
+
+ggplot(data = apt, mapping = aes(y = 단위금액)) + # 대신 x를 사용하면 상자 수염 그림을 가로 방향으로 눕혀서 그림
+  geom_boxplot(color = 'gray30', fill = 'pink',
+               outlier.color = 'darkred', outlier.fill = 'red',
+               outlier.shape = 21, outlier.size = 3,
+               outlier.stroke = 2, outlier.alpha = 0.5) +
+  labs(title = '단위금액 상자 수염 그림') +
+  mytheme # 사용자 테마는 마지막에 추가
+
+
+# === 이변량 상자 수염 그림 ===
+
+# 최대 장점은 x축에 명목형 또는 범주형 벡터를 설정하면 벡터의 원소별 분포를 한꺼번에 시각화 가능
+
+apt1 <- apt %>% filter(!is.na(x = codeHeatNm))
+ggplot(data = apt1, mapping = aes(x = codeHeatNm, y = 단위금액)) +
+  geom_boxplot(color = 'gray30', fill = 'pink',
+               outlier.color = 'darkred', outlier.fill = 'red',
+               outlier.shape = 21, outlier.size = 3,
+               outlier.stroke = 2, outlier.alpha = 0.5) +
+  labs(title = '단위금액 상자 수염 그림', x = '난방방식') +
+  mytheme
+
+
+# === 색 바꾸고 범례 추가 ===
+
+ggplot(data = apt1, mapping = aes(x = codeHeatNm, y = 단위금액)) +
+  geom_boxplot(mapping = aes(fill = codeHeatNm), color = 'gray30',
+               outlier.color = 'darkred', outlier.fill = 'red',
+               outlier.shape = 21, outlier.size = 3,
+               outlier.stroke = 2, outlier.alpha = 0.5) +
+  labs(title = '단위금액 상자 수염 그림', x = '난방방식') +
+  mytheme
+
+# === 범례 제거 ===
+
+ggplot(data = apt1, mapping = aes(x = codeHeatNm, y = 단위금액)) +
+  geom_boxplot(mapping = aes(fill = codeHeatNm), color = 'gray30',
+               outlier.color = 'darkred', outlier.fill = 'red',
+               outlier.shape = 21, outlier.size = 3,
+               outlier.stroke = 2, outlier.alpha = 0.5) +
+  labs(title = '단위금액 상자 수염 그림', x = '난방방식') +
+  mytheme +
+  theme(legend.position = 'none') # none 대신 left, right, top, bottom 등을 지정하면 원하는 위치에 범례를 옮길 수 있음
+
+
+## 막대 그래프 시각화
+
+# 일변량 막대 그래프는 명목형 또는 범주형 벡터의 원소별 빈도수를 시각화한 것
+
+# geom_bar(color = NULL, fill = NULL, ...)
+
+
+# === 일변량 막대 그래프 그리기 ===
+
+ggplot(data = apt1, mapping = aes(x = codeHeatNm)) +
+  geom_bar(mapping = aes(fill = codeHeatNm), color = 'gray30') +
+  labs(title = '난방방식 막대 그래프', x = '난방방식', y = '빈도수') +
+  mytheme +
+  theme(legend.position = 'none')
+
+
+# === 이변량 막대 그래프 ===
+
+# geom_col(color = NULL, fill = NULL, ...)
+
+# 이변량 막대를 그리려면 dplyr 패키지로 요약 데이터를 만들어야 함.
+
+apt1 %>% group_by(codeHeatNm) %>% summarise(freq = n()) -> heatCnt
+str(object = heatCnt)
+# tibble [3 × 2] (S3: tbl_df/tbl/data.frame)
+#  $ codeHeatNm: chr [1:3] "개별난방" "중앙난방" "지역난방"
+#  $ freq      : int [1:3] 409 71 2306
+
+ggplot(data = heatCnt, mapping = aes(codeHeatNm, y = freq)) +
+  geom_col(mapping = aes(fill = codeHeatNm), color = 'gray30') +
+  labs(title = '난방방식 막대 그래프', x = '난방방식', y = '빈도수') +
+  mytheme +
+  theme(legend.position = 'none')
+
+
+# === 빈도수 추가 ===
+
+# 두 가지 함수가 필요함. 텍스트를 추가하는 geom_text()와 축을 제한할 때 사용하는 coord_cartesoan(xlim = NULL, ylim = NULL) 함수가 필요함
+
+# geom_text(mapping = aes(x = 컬럼명1, y = 컬럼명2, label = 컬럼명3),
+#           color = NULL, vjust = NULL, hjust = NULL, size = 4, ...)
+# coord_cartesian(xlim = NULL, ylim = NULL)
+
+# vjust 매개변수는 라벨이 출력될 위치를 세로 방향으로 조정하고 0.5일 때 막대의 정 가운데로 설정됨. 0.5 보다 작을수록 위로 이동.
+# hjust 매개변수는 라벨이 출력될 위치를 가로 방향으로 조정하고 0.5일 때 막대의 정 가운데로 설정됨. 0.5 보다 작을수록 오른쪽으로 이동.
+# coord_cartesian() 함수에는 x축과 y축의 제한을 설정할 수 있음. 시작과 끝 위치를 원소로 갖는 벡터를 지정
+# 막대 그래프에서 막대 위에 텍스트를 제한하는 이유는 y축을 조금 키워서 일부 텍스트가 잘리지 않도록 하기 위함.
+# cartesian은 르네 데카르트가 발명한 데카르트 좌표계를 의미하며, 2차원 데카르트 좌표계를 좌표평면이라 함.
+
+ggplot(data = heatCnt, mapping = aes(x = codeHeatNm, y = freq)) +
+  geom_col(mapping = aes(fill = codeHeatNm), color = 'gray30') + 
+  coord_cartesian(ylim = c(0, 2500)) + # 기존 그래프보다 y축을 조금 키움
+  geom_text(mapping = aes(label = freq),
+            vjust = -1, size = 3) +
+  labs(title = '난방방식 막대 그래프', x = '난방방식', y = '빈도수') +
+  mytheme +
+  theme(legend.position = 'none')
+
+
+## 선 그래프 시각화
+
+# 주로 시간의 흐름에 따라 연속성 데이터의 변화를 시각화
+# x축에 사간 관련 컬럼 지정, y축에 연속성 컬럼 지정
+
+# geom_line(mapping = aes(group = 컬럼명), color = NULL, linetype = NULL,
+#           size = 0.5, ...)
+
+
+# === 이변량 선 그래프 그리기 ===
+
+apt1 %>% 
+  group_by(월) %>% 
+  summarise(평균단위금액 = mean(x = 단위금액)) -> monthMean
+
+str(object = monthMean)
+# tibble [12 × 2] (S3: tbl_df/tbl/data.frame)
+#  $ 월          : int [1:12] 1 2 3 4 5 6 7 8 9 10 ...
+#  $ 평균단위금액: num [1:12] 7089 7238 6679 6868 7009 ...
+
+ggplot(data = monthMean, mapping = aes(x = 월, y = 평균단위금액)) +
+  geom_line(color = 'red', linetype = 1, size = 1) +
+  labs(title = '월별 평균단위금액 선 그래프') +
+  mytheme
+
+
+# === 데이터 처리: 단위금액 커럼의 편균을 갖는 데이터프레임 생성 ===
+
+apt1 %>% 
+  group_by(월, codeHeatNm) %>% 
+  summarise(평균단위금액 = mean(단위금액), .groups = 'drop') -> monthMean2
+# 2개 이상의 컬럼으로 그룹을 설졍하면 summarise() 함수를 실행한 결과에 그룹 설정이 여전히 남아 있으므로 .group = 'drop'을 추가하여 그룹을 제거해 주는것이 좋음
+
+str(object = monthMean2)
+# tibble [36 × 3] (S3: tbl_df/tbl/data.frame)
+#  $ 월          : int [1:36] 1 1 1 2 2 2 3 3 3 4 ...
+#  $ codeHeatNm  : chr [1:36] "개별난방" "중앙난방" "지역난방" "개별난방" ...
+#  $ 평균단위금액: num [1:36] 5224 6194 7477 5435 6044 ...
+
+head(x = monthMean2) # 행 길이 36, 열 길이 3인 티블 == Lomg Type 데이터프레임임
+# A tibble: 6 × 3
+#      월 codeHeatNm 평균단위금액
+#   <int> <chr>             <dbl>
+# 1     1 개별난방          5224.
+# 2     1 중앙난방          6194 
+# 3     1 지역난방          7477.
+# 4     2 개별난방          5435.
+# 5     2 중앙난방          6044.
+# 6     2 지역난방          7554.
+
+
+# === Long Type 데이터프레임으로 선 그래프 그리기 ===
+
+ggplot(data = monthMean2, mapping = aes(x = 월, y = 평균단위금액)) + 
+  geom_line(color = 'red', size = 1) +
+  labs(title = '월별 평균단위금액 선 그래프') +
+  mytheme
+
+
+# === Long Type df으로 선 그래프 그릴 때 group으로 묶기
+
+# 36개 행의 평균단위금액 컬럼값이 하나의 선으로 그려짐. group 매개변수에 codeHeatNm 칼럼을 지정해야함.
+# x축 눈금이 소수점으로 표현됨. 우러 컬럼을 범주형 벡터로 변환하면 해결됨.
+
+monthMean2 %>% mutate(월 = as.factor(x = 월)) -> monthMean2
+ggplot(data = monthMean2, mapping = aes(x = 월, y = 평균단위금액)) +
+  geom_line(mapping = aes(group = codeHeatNm, color = codeHeatNm),
+            size = 1) +
+  labs(title = '월별 평균단위금액 선 그래프') + 
+  mytheme +
+  theme(legend.position = 'bottom')
+
+
+## 산점도 시각화
+
+# geom_point(color = NULL, fill = NULL, shape = 19, alpha = NULL, size = 1.5,
+#            stroke = 0.5, ...)
+
+
+# === 이변량 산점도 그리기 ===
+
+ggplot(data = apt, mapping = aes(x = 전용면적, y = 거래금액)) +
+  geom_point(color = 'gray30', fill = 'gray80', shape = 21,
+             size = 2, alpha = 0.5, stroke =1) +
+  labs(title = '전용면적과 거래금액의 산점도') +
+  mytheme
+
+
+# === 수직선/수평선으로 구역 나누기
+
+# geom_vline(xintercept = 숫자형 벡터, color = NULL, linetype = NULL, ...)
+# geom_hline(yintercept = 숫자형 벡터, color = NULL, linetype = NULL, ...)
+
+# 산점도에 전용면적 컬럼의 평균으로 수직선, 거래금액 컬럼의 평균으로 수평선을 추가하면 산점도를 4개 구역으로 나누어 볼 수 있음.
+
+ggplot(data = apt, mapping = aes(x = 전용면적, y = 거래금액)) +
+  geom_point(color = 'gray30', fill = 'gray80', shape = 21,
+             size = 2, alpha = 0.5, stroke = 1) +
+  geom_vline(xintercept = mean(x = apt$전용면적), color = 'red', linetype = 2) +
+  geom_hline(yintercept = mean(x = apt$거래금액), color = 'red', linetype = 2) +
+  labs(title = '전용면적과 거래금액의 산점도') +
+  mytheme
+
+getwd()
+setwd(dir = 'C:/Users/82102/git/R/works/rscript/DAwR')
